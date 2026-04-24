@@ -1,5 +1,16 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
+import { db } from '../firebase';
+import { 
+  collection, 
+  addDoc, 
+  updateDoc, 
+  onSnapshot, 
+  doc, 
+  query, 
+  where,
+  getDocs 
+} from 'firebase/firestore';
 
 export const AuthContext = createContext();
 
@@ -13,10 +24,36 @@ export const AuthProvider = ({ children }) => {
     return localStorage.getItem('agri_is_admin') === 'true';
   });
 
-  const [users, setUsers] = useState(() => {
-    const saved = localStorage.getItem('agri_users_list');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [users, setUsers] = useState([]);
+  const [allOrders, setAllOrders] = useState([]);
+  const [queriesList, setQueriesList] = useState([]);
+
+  // Sync users from Firestore
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, 'users'), (snapshot) => {
+      const usersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setUsers(usersData);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Sync orders from Firestore
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, 'orders'), (snapshot) => {
+      const ordersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setAllOrders(ordersData.sort((a, b) => b.id.localeCompare(a.id)));
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Sync queries from Firestore
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, 'queries'), (snapshot) => {
+      const queriesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setQueriesList(queriesData);
+    });
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     if (user) localStorage.setItem('agri_user', JSON.stringify(user));
@@ -27,30 +64,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('agri_is_admin', isAdmin);
   }, [isAdmin]);
 
-  useEffect(() => {
-    localStorage.setItem('agri_users_list', JSON.stringify(users));
-    
-    // Sync current user state with users list (important for status updates)
-    if (user && !isAdmin) {
-      const updatedUser = users.find(u => u.email === user.email);
-      if (updatedUser && JSON.stringify(updatedUser) !== JSON.stringify(user)) {
-        setUser(updatedUser);
-      }
-    }
-  }, [users, user, isAdmin]);
-
-  // Listen for changes from other tabs (Multi-tab Sync)
-  useEffect(() => {
-    const handleStorageChange = (e) => {
-      if (e.key === 'agri_users_list') {
-        setUsers(JSON.parse(e.newValue));
-      }
-    };
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
-
-  const login = (identifier, password) => {
+  const login = async (identifier, password) => {
     const foundUser = users.find(u => (u.email === identifier || u.phone === identifier) && u.password === password);
     if (foundUser) {
       setUser(foundUser);
@@ -60,14 +74,19 @@ export const AuthProvider = ({ children }) => {
     return { success: false, message: 'Invalid credentials' };
   };
 
-  const signup = (userData) => {
+  const signup = async (userData) => {
     if (users.find(u => u.email === userData.email || u.phone === userData.phone)) {
       return { success: false, message: 'User with this email or phone already exists' };
     }
-    const newUser = { ...userData, orders: [] };
-    setUsers([...users, newUser]);
-    setUser(newUser);
-    return { success: true };
+    try {
+      const newUser = { ...userData, role: 'customer', createdAt: new Date().toISOString() };
+      const docRef = await addDoc(collection(db, 'users'), newUser);
+      setUser({ ...newUser, id: docRef.id });
+      return { success: true };
+    } catch (error) {
+      console.error("Error signing up:", error);
+      return { success: false, message: 'Signup failed. Please try again.' };
+    }
   };
 
   const adminLogin = (email, password) => {
@@ -79,28 +98,27 @@ export const AuthProvider = ({ children }) => {
     return { success: false, message: 'Invalid Admin Credentials' };
   };
 
-  const [queries, setQueries] = useState(() => {
-    const saved = localStorage.getItem('agri_queries');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  useEffect(() => {
-    localStorage.setItem('agri_queries', JSON.stringify(queries));
-  }, [queries]);
-
-  const addQuery = (queryData) => {
-    const newQuery = {
-      ...queryData,
-      id: `QRY-${Date.now()}`,
-      date: new Date().toLocaleString(),
-      status: 'Unread'
-    };
-    setQueries([newQuery, ...queries]);
-    toast.success('Your query has been submitted. We will contact you soon!');
+  const addQuery = async (queryData) => {
+    try {
+      const newQuery = {
+        ...queryData,
+        date: new Date().toLocaleString(),
+        status: 'Unread'
+      };
+      await addDoc(collection(db, 'queries'), newQuery);
+      toast.success('Your query has been submitted. We will contact you soon!');
+    } catch (error) {
+      toast.error('Failed to submit query.');
+    }
   };
 
-  const updateQueryStatus = (queryId, status) => {
-    setQueries(queries.map(q => q.id === queryId ? { ...q, status } : q));
+  const updateQueryStatus = async (queryId, status) => {
+    try {
+      const queryRef = doc(db, 'queries', queryId);
+      await updateDoc(queryRef, { status });
+    } catch (error) {
+      toast.error('Failed to update status.');
+    }
   };
 
   const logout = () => {
@@ -108,42 +126,29 @@ export const AuthProvider = ({ children }) => {
     setIsAdmin(false);
   };
 
-  const updateOrderStatus = (userEmail, orderId, newStatus) => {
-    const updatedUsers = users.map(u => {
-      if (u.email === userEmail) {
-        return {
-          ...u,
-          orders: (u.orders || []).map(o => o.id === orderId ? { ...o, status: newStatus } : o)
-        };
-      }
-      return u;
-    });
-    setUsers(updatedUsers);
-    
-    // If the logged in user is the one whose order was updated, update their state too
-    if (user && user.email === userEmail) {
-      setUser({
-        ...user,
-        orders: (user.orders || []).map(o => o.id === orderId ? { ...o, status: newStatus } : o)
-      });
+  const updateOrderStatus = async (orderId, newStatus) => {
+    try {
+      const orderRef = doc(db, 'orders', orderId);
+      await updateDoc(orderRef, { status: newStatus });
+    } catch (error) {
+      toast.error('Failed to update order status.');
     }
   };
 
-  const addOrderToUser = (order) => {
+  const addOrderToUser = async (order) => {
     if (!user) return;
-    const updatedUsers = users.map(u => {
-      if (u.email === user.email) {
-        return { ...u, orders: [...(u.orders || []), order] };
-      }
-      return u;
-    });
-    setUsers(updatedUsers);
-    setUser({ ...user, orders: [...(user.orders || []), order] });
+    try {
+      const newOrder = { ...order, userId: user.id || user.email };
+      await addDoc(collection(db, 'orders'), newOrder);
+    } catch (error) {
+      console.error("Error placing order:", error);
+      toast.error('Failed to place order in database.');
+    }
   };
 
   return (
     <AuthContext.Provider value={{ 
-      user, isAdmin, users, queries, 
+      user, isAdmin, users, queries: queriesList, allOrders,
       login, signup, adminLogin, logout, 
       addOrderToUser, updateOrderStatus,
       addQuery, updateQueryStatus
@@ -152,3 +157,4 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+

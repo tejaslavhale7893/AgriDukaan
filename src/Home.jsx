@@ -7,9 +7,17 @@ import { ShoppingBag, ArrowRight, ShieldCheck, Truck, Star } from 'lucide-react'
 import { toast } from 'react-hot-toast';
 
 const Home = () => {
-  const { products } = useContext(ProductContext);
+  const { products, loading } = useContext(ProductContext);
   const { isAdmin } = useContext(AuthContext);
   const navigate = useNavigate();
+
+  if (loading) return (
+    <div className="flex-center" style={{ height: '100vh', flexDirection: 'column', gap: '20px' }}>
+      <div className="animate-spin" style={{ width: '50px', height: '50px', border: '5px solid #f1f5f9', borderTopColor: 'var(--primary)', borderRadius: '50%' }}></div>
+      <p style={{ fontWeight: '700', color: 'var(--primary)' }}>Loading Fresh Products...</p>
+    </div>
+  );
+
 
   return (
     <div>

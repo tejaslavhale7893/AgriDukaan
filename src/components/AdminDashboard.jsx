@@ -7,7 +7,7 @@ import { toast } from 'react-hot-toast';
 
 const AdminDashboard = () => {
   const { products, addProduct, removeProduct, updateProduct } = useContext(ProductContext);
-  const { isAdmin, users, queries, updateOrderStatus, updateQueryStatus } = useContext(AuthContext);
+  const { isAdmin, users, queries, updateOrderStatus, updateQueryStatus, allOrders } = useContext(AuthContext);
   const [editingId, setEditingId] = useState(null);
   const [showAdd, setShowAdd] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null); // Full screen preview
@@ -18,12 +18,6 @@ const AdminDashboard = () => {
 
   if (!isAdmin) return <div className="container">Access Denied</div>;
 
-  const allOrders = (users || []).reduce((acc, u) => {
-    const userOrders = (u.orders || [])
-      .map(o => ({ ...o, userEmail: u.email, userName: u.name }));
-    return [...acc, ...userOrders];
-  }, []).sort((a, b) => b.id.localeCompare(a.id)); // Using ID since it has timestamp
-
   const stats = {
     lifetime: allOrders.length,
     pendingVerification: allOrders.filter(o => o.status === 'Pending Verification').length,
@@ -32,10 +26,11 @@ const AdminDashboard = () => {
     unreadQueries: (queries || []).filter(q => q.status === 'Unread').length
   };
 
-  const handleVerifyOrder = (userEmail, orderId, newStatus) => {
-    updateOrderStatus(userEmail, orderId, newStatus);
+  const handleVerifyOrder = (orderId, newStatus) => {
+    updateOrderStatus(orderId, newStatus);
     toast.success(`Order ${newStatus}`);
   };
+
 
   const handleAdd = (e) => {
     e.preventDefault();
@@ -252,14 +247,15 @@ const AdminDashboard = () => {
                       <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                         {order.status === 'Pending Verification' ? (
                           <>
-                            <button onClick={() => handleVerifyOrder(order.userEmail, order.id, 'Approved')} className="btn btn-primary" style={{ padding: '8px 20px', fontSize: '13px' }}>Approve Payment</button>
-                            <button onClick={() => handleVerifyOrder(order.userEmail, order.id, 'Rejected')} className="btn" style={{ padding: '8px 20px', fontSize: '13px', background: '#fee2e2', color: 'var(--error)' }}>Reject</button>
+                            <button onClick={() => handleVerifyOrder(order.id, 'Approved')} className="btn btn-primary" style={{ padding: '8px 20px', fontSize: '13px' }}>Approve Payment</button>
+                            <button onClick={() => handleVerifyOrder(order.id, 'Rejected')} className="btn" style={{ padding: '8px 20px', fontSize: '13px', background: '#fee2e2', color: 'var(--error)' }}>Reject</button>
                           </>
                         ) : (
                           ['Processing', 'Out for Delivery', 'Delivered'].map(status => (
                             <button 
                               key={status}
-                              onClick={() => handleVerifyOrder(order.userEmail, order.id, status)}
+                              onClick={() => handleVerifyOrder(order.id, status)}
+
                               className="btn" 
                               style={{ 
                                 padding: '8px 16px', fontSize: '12px', 

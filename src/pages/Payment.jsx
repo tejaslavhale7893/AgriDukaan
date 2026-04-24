@@ -91,8 +91,9 @@ const Payment = () => {
         }
       };
 
-      addOrderToUser(order);
+      await addOrderToUser(order);
       await sendEmailNotification(order);
+
       clearCart();
       setIsProcessing(false);
       

@@ -21,7 +21,7 @@ const STATUS_MAP = {
 };
 
 const OrderHistory = () => {
-  const { user, users } = useContext(AuthContext);
+  const { user, allOrders } = useContext(AuthContext);
   const navigate = useNavigate();
 
   if (!user) {
@@ -33,9 +33,8 @@ const OrderHistory = () => {
     );
   }
 
-  // Always fetch the freshest order data from the master users list
-  const currentUser = users.find(u => u.email === user.email) || user;
-  const orders = [...(currentUser.orders || [])].sort((a, b) => b.id.localeCompare(a.id));
+  const orders = (allOrders || []).filter(o => o.userId === user.id || o.userId === user.email);
+
 
   return (
     <div className="container" style={{ padding: '60px 0' }}>

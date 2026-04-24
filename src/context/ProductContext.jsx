@@ -1,33 +1,61 @@
 import React, { createContext, useState, useEffect } from 'react';
-import { products as initialProducts } from '../ProductData';
+import { db } from '../firebase';
+import { 
+  collection, 
+  onSnapshot, 
+  addDoc, 
+  deleteDoc, 
+  updateDoc, 
+  doc 
+} from 'firebase/firestore';
 
 export const ProductContext = createContext();
 
 export const ProductProvider = ({ children }) => {
-  const [products, setProducts] = useState(() => {
-    const saved = localStorage.getItem('agri_products');
-    return saved ? JSON.parse(saved) : initialProducts;
-  });
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    localStorage.setItem('agri_products', JSON.stringify(products));
-  }, [products]);
+    const unsubscribe = onSnapshot(collection(db, 'products'), (snapshot) => {
+      const productsData = snapshot.docs.map(doc => ({ 
+        id: doc.id, 
+        ...doc.data() 
+      }));
+      setProducts(productsData);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
 
-  const addProduct = (product) => {
-    setProducts([...products, { ...product, id: Date.now() }]);
+  const addProduct = async (product) => {
+    try {
+      await addDoc(collection(db, 'products'), product);
+    } catch (error) {
+      console.error("Error adding product:", error);
+    }
   };
 
-  const removeProduct = (id) => {
-    setProducts(products.filter(p => p.id !== id));
+  const removeProduct = async (id) => {
+    try {
+      await deleteDoc(doc(db, 'products', id));
+    } catch (error) {
+      console.error("Error removing product:", error);
+    }
   };
 
-  const updateProduct = (id, updatedProduct) => {
-    setProducts(products.map(p => p.id === id ? { ...updatedProduct, id } : p));
+  const updateProduct = async (id, updatedProduct) => {
+    try {
+      const productRef = doc(db, 'products', id);
+      await updateDoc(productRef, updatedProduct);
+    } catch (error) {
+      console.error("Error updating product:", error);
+    }
   };
 
   return (
-    <ProductContext.Provider value={{ products, addProduct, removeProduct, updateProduct }}>
+    <ProductContext.Provider value={{ products, addProduct, removeProduct, updateProduct, loading }}>
       {children}
     </ProductContext.Provider>
   );
 };
+
