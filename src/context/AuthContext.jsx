@@ -157,15 +157,29 @@ export const AuthProvider = ({ children }) => {
   };
 
 
+  const cancelOrder = async (orderId) => {
+    try {
+      const orderRef = doc(db, 'orders', orderId);
+      await updateDoc(orderRef, { status: 'Cancelled' });
+      toast.success('Order cancelled successfully.');
+      return { success: true };
+    } catch (error) {
+      console.error("Cancellation failed:", error);
+      toast.error('Failed to cancel order.');
+      return { success: false };
+    }
+  };
+
   return (
     <AuthContext.Provider value={{ 
       user, isAdmin, users, queries: queriesList, allOrders,
       login, signup, adminLogin, logout, 
-      addOrderToUser, updateOrderStatus,
+      addOrderToUser, updateOrderStatus, cancelOrder,
       addQuery, updateQueryStatus
     }}>
       {children}
     </AuthContext.Provider>
   );
 };
+
 

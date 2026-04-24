@@ -21,7 +21,8 @@ const STATUS_MAP = {
 };
 
 const OrderHistory = () => {
-  const { user, allOrders } = useContext(AuthContext);
+  const { user, allOrders, cancelOrder } = useContext(AuthContext);
+
   const navigate = useNavigate();
 
   if (!user) {
@@ -87,13 +88,33 @@ const OrderHistory = () => {
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Total Amount</p>
-                  <p style={{ fontSize: '24px', fontWeight: '800', color: 'var(--primary)' }}>₹{order.total}</p>
+                  <p style={{ fontSize: '24px', fontWeight: '800', color: 'var(--primary)', marginBottom: '12px' }}>₹{order.total}</p>
+                  {(order.status === 'Pending Verification' || order.status === 'Approved') && (
+                    <button 
+                      onClick={() => {
+                        if(window.confirm('Are you sure you want to cancel this order?')) {
+                          cancelOrder(order.id);
+                        }
+                      }}
+                      className="btn"
+                      style={{ padding: '6px 12px', fontSize: '11px', background: '#fee2e2', color: 'var(--error)', border: 'none' }}
+                    >
+                      Cancel Order
+                    </button>
+                  )}
                 </div>
               </div>
 
               {/* Order Tracking Progress */}
-              {order.status !== 'Rejected' && (
+              {['Rejected', 'Cancelled'].includes(order.status) ? (
+                <div style={{ padding: '20px', background: '#fef2f2', borderRadius: '16px', marginBottom: '32px', textAlign: 'center' }}>
+                  <p style={{ fontWeight: '800', color: 'var(--error)' }}>
+                    {order.status === 'Cancelled' ? '🚫 This order has been cancelled by you.' : '❌ This order was rejected by the admin.'}
+                  </p>
+                </div>
+              ) : (
                 <div style={{ marginBottom: '32px', padding: '0 20px' }}>
+
                   <div style={{ display: 'flex', justifyContent: 'space-between', position: 'relative', alignItems: 'center' }}>
                     {/* Background Line */}
                     <div style={{ position: 'absolute', top: '15px', left: '0', right: '0', height: '2px', background: '#f1f5f9', zIndex: 0 }} />

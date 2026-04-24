@@ -264,32 +264,32 @@ const AdminDashboard = () => {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #e2e8f0', paddingTop: '20px', flexWrap: 'wrap', gap: '15px' }}>
                     <div>
                       <p style={{ fontSize: '13px', fontWeight: '800', marginBottom: '12px' }}>Update Tracking Status:</p>
-                      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                        {order.status === 'Pending Verification' ? (
-                          <>
-                            <button onClick={() => handleVerifyOrder(order.id, 'Approved')} className="btn btn-primary" style={{ padding: '8px 20px', fontSize: '13px' }}>Approve Payment</button>
-                            <button onClick={() => handleVerifyOrder(order.id, 'Rejected')} className="btn" style={{ padding: '8px 20px', fontSize: '13px', background: '#fee2e2', color: 'var(--error)' }}>Reject</button>
-                          </>
-                        ) : (
-                          ['Processing', 'Out for Delivery', 'Delivered'].map(status => (
-                            <button 
-                              key={status}
-                              onClick={() => handleVerifyOrder(order.id, status)}
-
-                              className="btn" 
-                              style={{ 
-                                padding: '8px 16px', fontSize: '12px', 
-                                background: order.status === status ? 'var(--primary)' : '#f1f5f9',
-                                color: order.status === status ? 'white' : 'var(--text-main)',
-                                border: order.status === status ? 'none' : '1px solid #e2e8f0'
-                              }}
-                            >
-                              {status}
-                            </button>
-                          ))
-                        )}
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        {[
+                          { label: 'Verify', value: 'Approved', color: 'var(--success)' },
+                          { label: 'Process', value: 'Processing', color: 'var(--primary)' },
+                          { label: 'Ship', value: 'Out for Delivery', color: 'var(--accent-dark)' },
+                          { label: 'Deliver', value: 'Delivered', color: 'var(--success)' },
+                          { label: 'Reject', value: 'Rejected', color: 'var(--error)' }
+                        ].map(status => (
+                          <button 
+                            key={status.value}
+                            onClick={() => handleVerifyOrder(order.id, status.value)}
+                            className="btn" 
+                            style={{ 
+                              padding: '8px 14px', fontSize: '11px', 
+                              background: order.status === status.value ? status.color : '#f1f5f9',
+                              color: order.status === status.value ? 'white' : 'var(--text-main)',
+                              border: '1px solid #e2e8f0',
+                              fontWeight: '700'
+                            }}
+                          >
+                            {status.label}
+                          </button>
+                        ))}
                       </div>
                     </div>
+
                     {order.payment?.proofImage && (
                       <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '10px' }}>
                         <img 
