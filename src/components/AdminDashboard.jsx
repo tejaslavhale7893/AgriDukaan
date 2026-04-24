@@ -26,10 +26,18 @@ const AdminDashboard = () => {
     unreadQueries: (queries || []).filter(q => q.status === 'Unread').length
   };
 
-  const handleVerifyOrder = (orderId, newStatus) => {
-    updateOrderStatus(orderId, newStatus);
-    toast.success(`Order ${newStatus}`);
+  const handleVerifyOrder = async (orderId, newStatus) => {
+    try {
+      const result = await updateOrderStatus(orderId, newStatus);
+      if (result.success) {
+        toast.success(`Order status updated to ${newStatus}`);
+      }
+    } catch (error) {
+      console.error("Failed to update status:", error);
+      toast.error('Failed to update status on server.');
+    }
   };
+
 
 
   const handleAdd = async (e) => {

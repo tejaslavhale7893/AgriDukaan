@@ -126,25 +126,36 @@ export const AuthProvider = ({ children }) => {
     setIsAdmin(false);
   };
 
-  const updateOrderStatus = async (orderId, newStatus) => {
-    try {
-      const orderRef = doc(db, 'orders', orderId);
-      await updateDoc(orderRef, { status: newStatus });
-    } catch (error) {
-      toast.error('Failed to update order status.');
-    }
-  };
-
   const addOrderToUser = async (order) => {
     if (!user) return;
     try {
-      const newOrder = { ...order, userId: user.id || user.email };
+      // Save order with redundant identifying info to ensure visibility
+      const newOrder = { 
+        ...order, 
+        userId: user.id || 'N/A', 
+        userEmail: user.email,
+        status: order.status || 'Pending Verification'
+      };
       await addDoc(collection(db, 'orders'), newOrder);
+      toast.success('Order placed successfully!');
     } catch (error) {
       console.error("Error placing order:", error);
       toast.error('Failed to place order in database.');
     }
   };
+
+  const updateOrderStatus = async (orderId, newStatus) => {
+    try {
+      const orderRef = doc(db, 'orders', orderId);
+      await updateDoc(orderRef, { status: newStatus });
+      return { success: true };
+    } catch (error) {
+      console.error("Update failed:", error);
+      toast.error('Failed to update status.');
+      return { success: false };
+    }
+  };
+
 
   return (
     <AuthContext.Provider value={{ 

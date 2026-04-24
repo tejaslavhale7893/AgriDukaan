@@ -139,7 +139,13 @@ const SupportTools = () => {
         
         <button 
           onClick={() => setIsOpen(!isOpen)}
-          style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'var(--primary)', color: 'white', border: 'none', boxShadow: 'var(--shadow-lg)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transform: isOpen ? 'rotate(45deg)' : 'none', transition: '0.3s' }}
+          className="flex-center"
+          style={{ 
+            width: '64px', height: '64px', borderRadius: '50%', 
+            background: 'var(--primary)', color: 'white', border: 'none', 
+            boxShadow: 'var(--shadow-lg)', cursor: 'pointer',
+            transform: isOpen ? 'rotate(45deg)' : 'none', transition: '0.3s' 
+          }}
         >
           {isOpen ? <X size={32} /> : <MessageSquare size={32} />}
         </button>
@@ -148,7 +154,8 @@ const SupportTools = () => {
       {/* Query Modal */}
       <AnimatePresence>
         {activeTool === 'query' && (
-          <div className="overlay" style={{ zIndex: 2000 }}>
+          <div className="overlay" style={{ zIndex: 3000, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(5px)' }}>
+
             <motion.div 
               initial={{ scale: 0.9, opacity: 0 }} 
               animate={{ scale: 1, opacity: 1 }}

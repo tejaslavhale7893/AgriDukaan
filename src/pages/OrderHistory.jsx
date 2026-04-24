@@ -33,7 +33,12 @@ const OrderHistory = () => {
     );
   }
 
-  const orders = (allOrders || []).filter(o => o.userId === user.id || o.userId === user.email);
+  const orders = (allOrders || []).filter(o => 
+    (o.userId && o.userId === user.id) || 
+    (o.userEmail && o.userEmail === user.email) ||
+    (o.customer?.email === user.email)
+  );
+
 
 
   return (
