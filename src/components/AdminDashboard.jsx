@@ -32,26 +32,38 @@ const AdminDashboard = () => {
   };
 
 
-  const handleAdd = (e) => {
+  const handleAdd = async (e) => {
     e.preventDefault();
-    addProduct(formData);
-    setFormData({ name: '', category: 'Fruits', price: '', image: '', description: '', originalPrice: '', discount: '' });
-    setShowAdd(false);
-    toast.success('Product added successfully');
+    try {
+      await addProduct(formData);
+      setFormData({ name: '', category: 'Fruits', price: '', image: '', description: '', originalPrice: '', discount: '' });
+      setShowAdd(false);
+      toast.success('Product added successfully to database');
+    } catch (error) {
+      console.error("Failed to add product:", error);
+      toast.error('Failed to save product. Check Firebase permissions.');
+    }
   };
+
 
   const handleEdit = (product) => {
     setEditingId(product.id);
     setFormData(product);
   };
 
-  const handleUpdate = (e) => {
+  const handleUpdate = async (e) => {
     e.preventDefault();
-    updateProduct(editingId, formData);
-    setEditingId(null);
-    setFormData({ name: '', category: 'Fruits', price: '', image: '', description: '', originalPrice: '', discount: '' });
-    toast.success('Product updated');
+    try {
+      await updateProduct(editingId, formData);
+      setEditingId(null);
+      setFormData({ name: '', category: 'Fruits', price: '', image: '', description: '', originalPrice: '', discount: '' });
+      toast.success('Product updated successfully');
+    } catch (error) {
+      console.error("Failed to update product:", error);
+      toast.error('Failed to update product.');
+    }
   };
+
 
   const handleDelete = (id) => {
     if (window.confirm('Delete this product?')) {

@@ -15,9 +15,10 @@ const ProductDetails = () => {
   const { user } = useContext(AuthContext);
   const [quantity, setQuantity] = React.useState(1);
   
-  const product = products.find(p => p.id === parseInt(id));
+  const product = products.find(p => String(p.id) === String(id));
 
-  if (!product) return <div className="container">Product not found</div>;
+  if (!product) return <div className="container" style={{ padding: '100px 0', textAlign: 'center' }}><h2>Product not found</h2><p>The product you are looking for does not exist or has been removed.</p></div>;
+
 
   const handleOrderNow = () => {
     if (!user) {
