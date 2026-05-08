@@ -9,7 +9,8 @@ import {
   doc, 
   query, 
   where,
-  getDocs 
+  getDocs,
+  setDoc
 } from 'firebase/firestore';
 
 export const AuthContext = createContext();
@@ -136,7 +137,7 @@ export const AuthProvider = ({ children }) => {
         userEmail: user.email,
         status: order.status || 'Pending Verification'
       };
-      await addDoc(collection(db, 'orders'), newOrder);
+      await setDoc(doc(db, 'orders', newOrder.id), newOrder);
       toast.success('Order placed successfully!');
     } catch (error) {
       console.error("Error placing order:", error);
@@ -146,8 +147,16 @@ export const AuthProvider = ({ children }) => {
 
   const updateOrderStatus = async (orderId, newStatus) => {
     try {
-      const orderRef = doc(db, 'orders', orderId);
-      await updateDoc(orderRef, { status: newStatus });
+      const q = query(collection(db, 'orders'), where('id', '==', orderId));
+      const querySnapshot = await getDocs(q);
+      
+      if (!querySnapshot.empty) {
+        const docRef = querySnapshot.docs[0].ref;
+        await updateDoc(docRef, { status: newStatus });
+      } else {
+        const orderRef = doc(db, 'orders', orderId);
+        await updateDoc(orderRef, { status: newStatus });
+      }
       return { success: true };
     } catch (error) {
       console.error("Update failed:", error);
@@ -159,8 +168,16 @@ export const AuthProvider = ({ children }) => {
 
   const cancelOrder = async (orderId) => {
     try {
-      const orderRef = doc(db, 'orders', orderId);
-      await updateDoc(orderRef, { status: 'Cancelled' });
+      const q = query(collection(db, 'orders'), where('id', '==', orderId));
+      const querySnapshot = await getDocs(q);
+      
+      if (!querySnapshot.empty) {
+        const docRef = querySnapshot.docs[0].ref;
+        await updateDoc(docRef, { status: 'Cancelled' });
+      } else {
+        const orderRef = doc(db, 'orders', orderId);
+        await updateDoc(orderRef, { status: 'Cancelled' });
+      }
       toast.success('Order cancelled successfully.');
       return { success: true };
     } catch (error) {

@@ -228,8 +228,12 @@ const AdminDashboard = () => {
                         <h4 style={{ margin: 0, fontSize: '18px' }}>Order #{order.id}</h4>
                         <span style={{ 
                           fontSize: '11px', fontWeight: '800', padding: '4px 10px', borderRadius: '99px',
-                          background: order.status === 'Delivered' ? '#dcfce7' : '#fef3c7',
-                          color: order.status === 'Delivered' ? 'var(--success)' : '#92400e'
+                          background: ['Delivered', 'Approved'].includes(order.status) ? '#dcfce7' :
+                                      ['Rejected', 'Cancelled'].includes(order.status) ? '#fee2e2' :
+                                      ['Processing', 'Out for Delivery'].includes(order.status) ? '#e0f2fe' : '#fef3c7',
+                          color: ['Delivered', 'Approved'].includes(order.status) ? 'var(--success)' :
+                                 ['Rejected', 'Cancelled'].includes(order.status) ? 'var(--error)' :
+                                 ['Processing', 'Out for Delivery'].includes(order.status) ? 'var(--primary)' : '#92400e'
                         }}>
                           {order.status}
                         </span>
