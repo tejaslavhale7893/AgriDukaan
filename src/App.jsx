@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 
 // Contexts
@@ -22,6 +22,16 @@ import Shop from './pages/Shop';
 import Cart from './pages/Cart';
 import Payment from './pages/Payment';
 import OrderHistory from './pages/OrderHistory';
+
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+};
 
 const CheckoutAddress = () => {
   const [address, setAddress] = React.useState({ name: '', phone: '', line1: '', city: '', pincode: '' });
@@ -79,6 +89,7 @@ function App() {
       <ProductProvider>
         <CartProvider>
           <Router>
+            <ScrollToTop />
             <Toaster position="bottom-right" />
             <Navbar />
             <SupportTools />
