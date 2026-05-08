@@ -11,9 +11,9 @@ export const Login = () => {
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const result = login(identifier, password);
+    const result = await login(identifier, password);
     if (result.success) {
       toast.success('Welcome back!');
       navigate('/');
@@ -76,9 +76,15 @@ export const Signup = () => {
   const { signup } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const result = signup(formData);
+    
+    if (!/^\d{10}$/.test(formData.phone)) {
+      toast.error('Mobile number must be exactly 10 digits.');
+      return;
+    }
+
+    const result = await signup(formData);
     if (result.success) {
       toast.success('Account created successfully!');
       navigate('/');
@@ -126,9 +132,13 @@ export const Signup = () => {
             <div style={{ position: 'relative' }}>
               <Phone style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} size={18} color="#94a3b8" />
               <input 
-                type="tel" className="form-input" placeholder="+91 00000 00000" 
+                type="tel" className="form-input" placeholder="9876543210" 
                 style={{ paddingLeft: '48px' }} required
-                value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})}
+                value={formData.phone} 
+                onChange={e => {
+                  const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                  setFormData({...formData, phone: val});
+                }}
               />
             </div>
           </div>
