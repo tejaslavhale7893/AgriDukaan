@@ -29,7 +29,7 @@ const Navbar = () => {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', lineHeight: '1.1' }}>
             <span>Agri<span style={{ color: 'var(--accent-dark)' }}>Dukaan</span></span>
-            <span style={{ fontSize: '10px', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'lowercase' }}>by lavhale product</span>
+            <span style={{ fontSize: '10px', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'lowercase' }}>by Orignal product</span>
           </div>
         </Link>
 

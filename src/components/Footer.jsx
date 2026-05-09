@@ -15,7 +15,7 @@ const Footer = () => {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', lineHeight: '1.1' }}>
                 <span>Agri<span style={{ color: 'var(--accent)' }}>Dukaan</span></span>
-                <span style={{ fontSize: '10px', fontWeight: '600', color: '#94a3b8', textTransform: 'lowercase' }}>by lavhale product</span>
+                <span style={{ fontSize: '10px', fontWeight: '600', color: '#94a3b8', textTransform: 'lowercase' }}>by Orignal product</span>
               </div>
             </Link>
             <p style={{ color: '#94a3b8', lineHeight: '1.8', marginBottom: '24px' }}>
